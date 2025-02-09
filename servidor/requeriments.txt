@@ -1,0 +1,7 @@
+selenium
+matplotlib
+wordcloud
+requests
+nltk
+bs4
+scikit-learn==1.5.1
