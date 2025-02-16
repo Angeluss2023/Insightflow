@@ -6,7 +6,7 @@ import subprocess
 import torch
 from werkzeug.utils import secure_filename
 from flask import send_from_directory
-from analisis import analisis
+
 from subprocess import Popen
 from general import (
     leer_csv_y_unir,
@@ -369,34 +369,6 @@ def serve_file(platform, dataset, filename):
     # Servir el archivo
     return send_from_directory(folder_path, filename)
 
-@app.route('/analizar_comentarios', methods=['POST'])
-def analizar_comentarios():
-    """
-    Endpoint para analizar comentarios utilizando el código de analisis.py.
-    """
-    try:
-        # Obtener la carpeta del dataset desde la solicitud
-        data = request.get_json()
-        print(f"Datos recibidos: {data}")  # Para depuración
-        dataset_path = data.get('dataset_path')
-
-        if not dataset_path or not os.path.exists(dataset_path):
-            return jsonify({"error": "La ruta del dataset no es válida o no existe."}), 400
-
-        # Rutas de los archivos dentro del dataset
-        model_csv_path = os.path.join(dataset_path, "prediccion_modelo.csv")
-        transformers_csv_path = os.path.join(dataset_path, "prediccion_transformers.csv")
-
-        # Llamar a la función analisis del archivo analisis.py
-        resultado = analisis(model_csv_path, transformers_csv_path)
-
-        return jsonify({
-            "mensaje": "Análisis completado con éxito.",
-            "resultados": resultado
-        }), 200
-
-    except Exception as e:
-        return jsonify({"error": f"Ocurrió un error durante el análisis: {str(e)}"}), 500
 
 @app.route('/realizar_busqueda', methods=['POST'])
 def realizar_busqueda():

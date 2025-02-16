@@ -1,9 +1,8 @@
 import subprocess
 import os
-import requests
+import time
+import multiprocessing
 import sys
-import threading
-from concurrent.futures import ThreadPoolExecutor
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -43,11 +42,10 @@ EXPECTED_FILES = {
     ]
 }
 
-# Crear una barrera para sincronizar los hilos (una por cada script que ejecutamos)
-
-def ejecutar_script(script_name, platform):
-    """Ejecuta un script en un subproceso y verifica la creación de archivos."""
+def ejecutar_script(script_name, platform, resultados):
+    """Ejecuta un script en un subproceso y mide el tiempo de ejecución."""
     try:
+        start_time = time.time()
         print(f"🔄 Ejecutando {script_name} para {platform}...")
 
         proceso = subprocess.Popen(
@@ -57,37 +55,45 @@ def ejecutar_script(script_name, platform):
             text=True,
             encoding='utf-8'
         )
-        try:
-            stdout, stderr = proceso.communicate(timeout=300)  # Tiempo máximo de espera
-        except subprocess.TimeoutExpired:
-            proceso.kill()
-            print(f"⏳ El script {script_name} excedió el tiempo límite y fue terminado.")
-            return False
+        stdout, stderr = proceso.communicate()
+        end_time = time.time()
+        execution_time = end_time - start_time
 
         if proceso.returncode != 0:
             print(f"❌ Error en {script_name}: {stderr.strip()}")
-            return False
-
-        print(f"✅ {script_name} ejecutado correctamente.")
-
-        # Validar archivos generados
-        latest_dataset = os.path.join(
-            BASE_DIR[platform],
-            max(os.listdir(BASE_DIR[platform]), key=lambda x: int(x.replace("Dataset", "")))
-        )
-        missing_files = [
-            file_name for file_name in EXPECTED_FILES[platform]
-            if not os.path.exists(os.path.join(latest_dataset, file_name))
-        ]
-
-        if missing_files:
-            print(f"⚠️ Faltan archivos en {platform}: {missing_files}")
-            return False
-
-        print(f"✅ Todos los archivos necesarios están presentes para {platform}.")
-        return True
+        else:
+            print(f"✅ {script_name} ejecutado correctamente en {execution_time:.2f} segundos.")
+        
+        resultados[platform] = execution_time
 
     except Exception as e:
         print(f"⚠️ Error al ejecutar {script_name}: {e}")
-        return False
+        resultados[platform] = None
 
+if __name__ == "__main__":
+    manager = multiprocessing.Manager()
+    resultados = manager.dict()
+    procesos = []
+    
+    start_time_total = time.time()
+    
+    for platform, script in zip(["tiktok", "youtube", "web"], ["tiktok.py", "youtube.py", "breadsoupautomatico.py"]):
+        p = multiprocessing.Process(target=ejecutar_script, args=(script, platform, resultados))
+        procesos.append(p)
+        p.start()
+    
+    for p in procesos:
+        p.join()
+    
+    end_time_total = time.time()
+    total_execution_time = end_time_total - start_time_total
+    
+    print("\n📊 Tiempos de ejecución con multiprocessing:")
+    for script, tiempo in resultados.items():
+        print(f"{script}: {tiempo:.2f} segundos")
+    
+    print(f"⏳ Tiempo total con multiprocessing: {total_execution_time:.2f} segundos")
+    
+    # Guardar los tiempos en un archivo para análisis posterior
+    with open("execution_times_multiprocessing.json", "w") as f:
+        f.write(str(dict(resultados)))
