@@ -20,6 +20,24 @@ Insightflow es un sistema diseñado para la **extracción, análisis y visualiza
   - 📊 Visualización (Matplotlib, WordCloud)
 
 ---
+## 📂 Estructura del Proyecto
+El repositorio contiene las siguientes carpetas y archivos principales:
+
+- `frontendreact/` - Contiene el código del frontend en React.
+- `servidor/` - Backend en Python para la extracción y análisis de datos.
+- `DatasetsTikTok/`, `DatasetsWeb/`, `DatasetsYT/` - Almacenan los datasets generados.
+- `requirements.txt` - Lista de dependencias necesarias.
+- `README.md` - Documentación del proyecto.
+
+## 🛠 Contribuir al Proyecto
+Si deseas contribuir a Insightflow, sigue estos pasos:
+
+1. **Haz un fork** del repositorio.
+2. **Clona tu fork** en tu máquina local:
+   ```sh
+   git clone https://github.com/tu-usuario/Insightflow.git
+
+
 
 ## 🚀 Instalación y ejecución
 ### 🔧 **Requisitos previos**
